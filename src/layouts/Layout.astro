@@ -1,5 +1,26 @@
 ---
 import "../styles/global.css";
+
+const { title } = Astro.props;
+const pathname = Astro.url.pathname;
+
+// Configuration des breadcrumbs selon la route
+let crumbs = [];
+
+if (pathname === "/generator") {
+  crumbs = [
+    { href: "/", label: "Accueil" },
+    { label: "Générateur de SVG", active: true }
+  ];
+}	
+
+if (pathname === "/saved") {
+  crumbs = [
+    { href: "/", label: "Accueil" },
+    { href: "/generator", label: "Générateur de SVG" },
+    { label: "Mes SVG", active: true }
+  ];
+}
 ---
 <!doctype html>
 <html lang="en" data-theme="light" class="h-full">

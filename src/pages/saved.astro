@@ -1,0 +1,44 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// Récupère les SVG enregistrés via l’API PocketBase
+const res = await fetch("http://127.0.0.1:8090/api/collections/svgs/records");
+const { items: svgs } = await res.json();
+---
+
+<Layout title="SVG enregistrés">
+  <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
+    
+    <div class="flex w-full max-w-5xl items-center justify-between">
+      <h1 class="text-3xl font-bold text-primary">📁 SVG enregistrés</h1>
+      <a href="/generator" class="btn btn-secondary">← Retour au générateur</a>
+    </div>
+
+    <div class="breadcrumbs text-sm mb-4">
+      <ul>
+        <li><a href="/" class="text-primary">Accueil</a></li>
+        <li><a href="/generator" class="text-primary">Générateur</a></li>
+        <li class="text-secondary">SVG enregistrés</li>
+      </ul>
+    </div>
+
+    <!-- Liste des SVG -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+      {svgs.length === 0 ? (
+        <div class="alert alert-info">Aucun SVG enregistré pour l’instant.</div>
+      ) : (
+        svgs.map((svg: any) => (
+          <div class="card bg-base-100 shadow-xl p-4">
+            <h2 class="font-semibold text-secondary mb-2">{svg.name}</h2>
+            <div class="bg-base-200 rounded-lg p-2 overflow-x-auto mb-2">
+              <pre class="text-xs">{svg.code}</pre>
+            </div>
+            <div class="flex justify-center items-center min-h-[150px]">
+              <div set:html={svg.code}></div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </main>
+</Layout>

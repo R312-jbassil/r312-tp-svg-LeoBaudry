@@ -8,12 +8,12 @@ import Layout from "../layouts/Layout.astro";
     <div class="flex w-full max-w-5xl items-center justify-between">
       <h1 class="text-3xl font-bold text-primary">Générateur de SVG</h1>
       <a href="/" class="btn btn-secondary">← Retour</a>
-    </div>
-    <div class="breadcrumbs text-sm mb-2">
-    <ul>
-        <li><a href="/" class="text-primary">Accueil</a></li>
-        <li class="text-secondary">Générateur de SVG</li>
-    </ul>
+        <div class="breadcrumbs text-sm mb-2"> 
+         <ul> 
+          <li><a href="/" class="text-primary">Accueil</a></li> 
+          <li class="text-secondary">Générateur de SVG</li>
+         </ul> 
+        </div>
     </div>
     <!-- Grid 2 colonnes -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
@@ -30,6 +30,17 @@ import Layout from "../layouts/Layout.astro";
         >
           Générer le SVG
         </button>
+        <div class="flex gap-2">
+          <input 
+            id="svg-name" 
+            type="text" 
+            placeholder="Nom du SVG" 
+            class="input input-bordered input-sm w-full"
+          />
+          <button id="save-svg" class="btn btn-accent">Enregistrer</button>
+          <a href="/saved" class="btn btn-outline btn-info">Voir mes SVG enregistrés</a>
+
+        </div>
       </div>
 
       <!-- 2. Code généré -->
@@ -39,59 +50,90 @@ import Layout from "../layouts/Layout.astro";
       </div>
     </div>
 
-    <!-- 3. Aperçu SVG (pleine largeur sous la grille) -->
+    <!-- 3. Aperçu SVG -->
     <div class="card bg-base-100 shadow-xl p-4 w-full max-w-5xl">
       <h2 class="font-semibold text-primary">Aperçu :</h2>
       <div id="svg-container" class="flex justify-center items-center min-h-[200px]"></div>
     </div>
   </main>
 
-<script>
-  //@ts-nocheck
+  <script>
+    //@ts-nocheck
 
-  async function generateSVG(prompt) {
-    const res = await fetch('/api/generateSVG', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
-    });
-    const data = await res.json();
-    return data.svg;
-  }
-
-  async function handleSubmit() {
-    const promptElement = document.getElementById("user-prompt");
-    const generateButton = document.getElementById("generate-button");
-    const svgOutput = document.getElementById("svg-output");
-    const svgContainer = document.getElementById("svg-container");
-
-    const prompt = promptElement.value.trim();
-    if (!prompt) return;
-
-    // Spinner et désactivation du bouton
-    svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
-    generateButton.disabled = true;
-
-    try {
-      const svgCode = await generateSVG(prompt);
-      console.log("SVG généré:", svgCode);
-
-      // Affiche le code brut
-      svgOutput.textContent = svgCode;
-
-      // Affiche le rendu SVG
-      svgContainer.innerHTML = svgCode;
-    } catch (err) {
-      console.error("Erreur génération SVG:", err);
-      svgContainer.textContent = "Erreur lors de la génération du SVG.";
-    } finally {
-      generateButton.disabled = false;
+    async function generateSVG(prompt) {
+      const res = await fetch('/api/generateSVG', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      return data.svg;
     }
-  }
 
-  const generateButton = document.getElementById("generate-button");
-  if (generateButton) {
-    generateButton.addEventListener("click", handleSubmit);
-  }
-</script>
+    async function handleSubmit() {
+      const promptElement = document.getElementById("user-prompt");
+      const generateButton = document.getElementById("generate-button");
+      const svgOutput = document.getElementById("svg-output");
+      const svgContainer = document.getElementById("svg-container");
+
+      const prompt = promptElement.value.trim();
+      if (!prompt) return;
+
+      // Spinner et désactivation du bouton
+      svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+      generateButton.disabled = true;
+
+      try {
+        const svgCode = await generateSVG(prompt);
+        console.log("SVG généré:", svgCode);
+
+        svgOutput.textContent = svgCode;
+        svgContainer.innerHTML = svgCode;
+      } catch (err) {
+        console.error("Erreur génération SVG:", err);
+        svgContainer.textContent = "Erreur lors de la génération du SVG.";
+      } finally {
+        generateButton.disabled = false;
+      }
+    }
+
+    const generateButton = document.getElementById("generate-button");
+    if (generateButton) {
+      generateButton.addEventListener("click", handleSubmit);
+    }
+
+    // Sauvegarde vers PocketBase via l'API Astro
+    const saveButton = document.getElementById('save-svg');
+    const svgNameInput = document.getElementById('svg-name');
+    const svgOutput = document.getElementById('svg-output');
+
+    if (saveButton) {
+      saveButton.addEventListener('click', async () => {
+        const name = svgNameInput.value.trim();
+        const code = svgOutput.textContent.trim();
+
+        if (!name || !code) {
+          alert('Veuillez générer un SVG et donner un nom.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/saveSVG', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, code }),
+          });
+
+          if (!res.ok) throw new Error('Erreur lors de l\'enregistrement');
+
+          const record = await res.json();
+          alert(`SVG "${record.name}" enregistré avec succès !`);
+          svgNameInput.value = '';
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+      });
+    }
+  </script>
 </Layout>
