@@ -23,7 +23,7 @@ const { items: svgs } = await res.json();
     </div>
 
     <!-- Liste des SVG -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-8xl">
       {svgs.length === 0 ? (
         <div class="alert alert-info">Aucun SVG enregistré pour l’instant.</div>
       ) : (
