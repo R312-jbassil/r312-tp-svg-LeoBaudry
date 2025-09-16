@@ -1,0 +1,77 @@
+---
+import Layout from "../layouts/Layout.astro"; // adapte si besoin
+---
+
+<Layout title="SVG Generator">
+  <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
+    <h1 class="text-3xl font-bold">🎨 Générateur de SVG</h1>
+
+    <!-- Grid 2 colonnes -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+      <!-- 1. Prompt input -->
+      <div class="card bg-base-100 shadow-xl p-4 flex flex-col gap-4">
+        <textarea
+          id="user-prompt"
+          class="textarea textarea-bordered w-full"
+          placeholder="Décris le SVG que tu veux (ex: a red car)"
+        ></textarea>
+        <button
+          id="generate-button"
+          class="btn btn-primary"
+        >
+          Générer le SVG
+        </button>
+      </div>
+
+      <!-- 2. Code généré -->
+      <div class="card bg-base-100 shadow-xl p-4">
+        <h2 class="font-semibold">Code SVG :</h2>
+        <pre id="svg-output" class="whitespace-pre-wrap text-sm"></pre>
+      </div>
+    </div>
+
+    <!-- 3. Aperçu SVG (pleine largeur sous la grille) -->
+    <div class="w-full max-w-5xl card bg-base-100 shadow-xl p-4">
+      <h2 class="font-semibold">Aperçu :</h2>
+      <div id="svg-container" class="flex justify-center items-center min-h-[200px]"></div>
+    </div>
+  </main>
+
+  <script>
+    //@ts-nocheck
+
+    async function generateSVG(prompt) {
+      const res = await fetch('/api/generate-svg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      return data.svg;
+    }
+
+    async function handleSubmit() {
+      const promptElement = document.getElementById("user-prompt");
+      const generateButton = document.getElementById("generate-button");
+      const svgOutput = document.getElementById("svg-output");
+      const svgContainer = document.getElementById("svg-container");
+
+      const prompt = promptElement.value.trim();
+      if (!prompt) return;
+
+      // Spinner
+      svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+      generateButton.disabled = true;
+
+      const svgCode = await generateSVG(prompt);
+
+      svgOutput.textContent = svgCode;
+      svgContainer.innerHTML = svgCode;
+
+      generateButton.disabled = false;
+    }
+
+    const generateButton = document.getElementById("generate-button");
+    generateButton.addEventListener("click", handleSubmit);
+  </script>
+</Layout>
