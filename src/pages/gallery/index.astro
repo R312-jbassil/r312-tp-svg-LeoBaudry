@@ -2,19 +2,35 @@
 import Layout from "../../layouts/Layout.astro";
 import pb from "../../utils/pb";
 import { Collections, type SvgRecord } from "../../utils/pocketbase-typegen";
+import { ui } from "../../i18n/ui.js";
+
+const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
 
 const svgs: SvgRecord[] = await pb.collection(Collections.Svg).getFullList();
 ---
 
-<Layout title="Galerie des SVG">
+<Layout title={ui[locale].gallery.title}>
   <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
-    <h1 class="text-3xl font-bold text-primary mb-6">Galerie des SVG</h1>
-          <a href="/" class="btn btn-secondary">← Retour</a>
+    <h1 class="text-3xl font-bold text-primary mb-6">{ui[locale].gallery.title}</h1>
 
+    <div class="w-full max-w-5xl flex items-center justify-between mb-4">
+      <a href="/" class="btn btn-secondary">{ui[locale].gallery.back}</a>
+
+      <div class="breadcrumbs text-sm">
+        <ul>
+          <li><a href="/" class="text-primary">{ui[locale].nav.home}</a></li>
+          <li class="text-secondary">{ui[locale].gallery.title}</li>
+        </ul>
+      </div>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
       {svgs.map(svg => (
-        <a href={`/gallery/${svg.id}`} class="card bg-base-100 shadow-xl p-4 hover:shadow-2xl transition">
+        <a
+          href={`/gallery/${svg.id}`}
+          class="card bg-base-100 shadow-xl p-4 hover:shadow-2xl transition"
+          aria-label={`${ui[locale].gallery.viewDetails} — ${svg.name}`}
+        >
           <h2 class="font-semibold text-lg mb-2">{svg.name}</h2>
           <div class="w-full h-32 flex justify-center items-center overflow-hidden">
             <div set:html={svg.code}></div>

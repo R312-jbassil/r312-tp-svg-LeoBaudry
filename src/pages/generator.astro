@@ -1,19 +1,22 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { ui } from "../i18n/ui.js";
+
+const locale = Astro.locals.lang as "en" | "fr" ?? "en";
 ---
 
-<Layout title="SVG Generator">
+<Layout title={ui[locale].generator.title}>
   <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
      
     <div class="flex w-full max-w-5xl items-center justify-between">
-      <h1 class="text-3xl font-bold text-primary">Générateur de SVG</h1>
-      <a href="/" class="btn btn-secondary">← Retour</a>
-        <div class="breadcrumbs text-sm mb-2"> 
-         <ul> 
-          <li><a href="/" class="text-primary">Accueil</a></li> 
-          <li class="text-secondary">Générateur de SVG</li>
-         </ul> 
-        </div>
+      <h1 class="text-3xl font-bold text-primary">{ui[locale].generator.title}</h1>
+      <a href="/" class="btn btn-secondary">← {ui[locale].nav.home}</a>
+      <div class="breadcrumbs text-sm mb-2"> 
+        <ul> 
+          <li><a href="/" class="text-primary">{ui[locale].nav.home}</a></li> 
+          <li class="text-secondary">{ui[locale].generator.title}</li>
+        </ul> 
+      </div>
     </div>
 
     <!-- Grid 2 colonnes -->
@@ -23,33 +26,32 @@ import Layout from "../layouts/Layout.astro";
         <textarea
           id="user-prompt"
           class="textarea textarea-bordered textarea-lg w-full"
-          placeholder="Décris le SVG que tu veux (ex: a red car)"
+          placeholder={ui[locale].generator.promptPlaceholder}
         ></textarea>
         <div class="flex gap-2">
-          <button id="generate-button" class="btn btn-secondary">Générer le SVG</button>
-          <button id="edit-button" class="btn btn-secondary">Edit</button>
+          <button id="generate-button" class="btn btn-secondary">{ui[locale].generator.generateButton}</button>
+          <button id="edit-button" class="btn btn-secondary">{ui[locale].generator.editButton}</button>
         </div>
         <div class="flex gap-2 mt-2">
           <input id="svg-name" type="text" placeholder="Nom du SVG" class="input input-bordered input-sm w-full" />
-          <button id="save-svg" class="btn btn-accent">Enregistrer</button>
-          <a href="/gallery" class="btn btn-outline btn-info">Voir mes SVG enregistrés</a>
+          <button id="save-svg" class="btn btn-accent">{ui[locale].generator.saveButton}</button>
+          <a href="/gallery" class="btn btn-outline btn-info">{ui[locale].generator.viewSaved}</a>
         </div>
       </div>
 
       <!-- 2. Code généré -->
       <div class="card bg-base-100 shadow-xl p-4">
-        <h2 class="font-semibold text-primary">Code SVG :</h2>
+        <h2 class="font-semibold text-primary">{ui[locale].generator.code}</h2>
         <pre id="svg-output" class="whitespace-pre-wrap text-sm text-secondary"></pre>
       </div>
     </div>
 
     <!-- 3. Aperçu SVG -->
     <div class="card bg-base-100 shadow-xl p-4 w-full max-w-5xl">
-      <h2 class="font-semibold text-primary">Aperçu :</h2>
+      <h2 class="font-semibold text-primary">{ui[locale].generator.preview}</h2>
       <div id="svg-container" class="flex justify-center items-center min-h-[200px]"></div>
     </div>
   </main>
-
 <script>
   //@ts-nocheck
 

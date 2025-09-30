@@ -1,16 +1,21 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { ui } from "../i18n/ui.js";
+
+const locale = Astro.locals.lang as "en" | "fr" ?? "en";
+console.log("🌍 Locale in index.astro:", locale);
 ---
 
-<Layout>
+
+<Layout title={ui[locale].index.title}>
   <div class="flex flex-col h-full items-center justify-center card bg-base300 text-primary-content p-8 gap-4">
-    <div class="breadcrumbs text-sm mb-2"> 
-      <ul> 
-        <li><a href="/" class="text-primary">Accueil</a></li> 
-      </ul> 
+    <div class="breadcrumbs text-sm mb-2">
+      <ul>
+        <li><a href="/" class="text-primary">{ui[locale].nav.home}</a></li>
+      </ul>
     </div>
-    <h1 class="text-4xl font-bold">Welcome to SVG Generator</h1>
-    <p class="text-lg">Create and render SVGs from prompts.</p>
-    <a href="/generator" class="btn btn-secondary">Go to SVG Generator</a>
+    <h1 class="text-4xl font-bold">{ui[locale].index.title}</h1>
+    <p class="text-lg">{ui[locale].index.description}</p>
+    <a href="/generator" class="btn btn-secondary">{ui[locale].index.button}</a>
   </div>
 </Layout>

@@ -1,41 +1,77 @@
 ---
 import "../styles/global.css";
+import { ui } from "../i18n/ui.js";
 
 const { title } = Astro.props;
 const pathname = Astro.url.pathname;
+const locale = Astro.props?.lang === 'fr' ? 'fr' : 'en';
 
 // Configuration des breadcrumbs selon la route
-let crumbs = [];
+let crumbs: { href?: string; label: string; active?: boolean }[] = [];
 
 if (pathname === "/generator") {
   crumbs = [
-    { href: "/", label: "Accueil" },
-    { label: "Générateur de SVG", active: true }
+    { href: "/", label: ui[locale].nav.home },
+    { label: ui[locale].nav.generator, active: true }
   ];
-}	
+}
 
 if (pathname === "/saved") {
   crumbs = [
-    { href: "/", label: "Accueil" },
-    { href: "/generator", label: "Générateur de SVG" },
-    { label: "Mes SVG", active: true }
+    { href: "/", label: ui[locale].nav.home },
+    { href: "/generator", label: ui[locale].nav.generator },
+    { label: "Mes SVG", active: true } // tu peux ajouter aussi ui[locale].gallery.title si tu veux traduire
   ];
 }
 ---
 <!doctype html>
-<html lang="en" data-theme="light" class="h-full">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body class="h-full">
-		<div class="h-full flex flex-col min-h-0">
-			<div class="flex-1 min-h-0">
-				<slot />
-			</div>
-		</div>
-	</body>
+<html lang={locale} data-theme="light" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title || "Astro Basics"}</title>
+  </head>
+  <body class="h-full">
+    <div class="h-full flex flex-col min-h-0">
+      <!-- Navbar -->
+      <header class="navbar bg-primary text-primary-content px-4">
+        <a href="/" class="btn btn-ghost normal-case text-xl">{ui[locale].nav.home}</a>
+        <a href="/generator" class="btn btn-ghost">{ui[locale].nav.generator}</a>
+        <a href="/gallery" class="btn btn-ghost">{ui[locale].nav.gallery}</a>
+
+        <!-- Sélecteur de langue -->
+        <form method="POST" action={Astro.url.pathname} class="ml-auto">
+          <select
+            name="language"
+            class="select select-bordered select-sm"
+            onchange="this.form.submit()"
+          >
+            <option disabled selected>{ui[locale].nav.language}</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+          </select>
+        </form>
+      </header>
+
+      <!-- Breadcrumbs (si définis) -->
+      {crumbs.length > 0 && (
+        <nav class="breadcrumbs text-sm p-4">
+          <ul>
+            {crumbs.map((crumb) => (
+              <li class={crumb.active ? "text-secondary font-semibold" : "text-primary"}>
+                {crumb.href ? <a href={crumb.href}>{crumb.label}</a> : crumb.label}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      <!-- Contenu -->
+      <div class="flex-1 min-h-0">
+        <slot />
+      </div>
+    </div>
+  </body>
 </html>
