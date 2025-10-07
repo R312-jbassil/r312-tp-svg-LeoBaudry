@@ -37,9 +37,15 @@ if (pathname === "/saved") {
     <div class="h-full flex flex-col min-h-0">
       <!-- Navbar -->
       <header class="navbar bg-primary text-primary-content px-4">
-        <a href="/" class="btn btn-ghost normal-case text-xl">{ui[locale].nav.home}</a>
-        <a href="/generator" class="btn btn-ghost">{ui[locale].nav.generator}</a>
-        <a href="/gallery" class="btn btn-ghost">{ui[locale].nav.gallery}</a>
+        <a href="/" class="btn btn-info">{ui[locale].nav.home}</a>
+        <a href="/generator" class="btn btn-secondary">{ui[locale].nav.generator}</a>
+        <a href="/gallery" class="btn btn-accent">{ui[locale].nav.gallery}</a>
+        <form method="POST" action="/api/logout" class="m-0 p-0 ml-4">
+          <button type="submit" class="btn btn-warning">Logout</button>
+        </form>
+
+
+
 
         <!-- Sélecteur de langue -->
         <form method="POST" action={Astro.url.pathname} class="ml-auto">
