@@ -3,6 +3,8 @@ if (Astro.locals.user) {
     // Si l'utilisateur est déjà connecté, on le redirige vers la page d'accueil
     return Astro.redirect("/");
 }
+const user = Astro.locals.user;
+
 ---
 <html lang="en" data-theme="light">
     <head>

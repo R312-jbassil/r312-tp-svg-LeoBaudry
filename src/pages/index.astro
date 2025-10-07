@@ -3,6 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 
 const locale = Astro.locals.lang as "en" | "fr" ?? "en";
+const user = Astro.locals.user;
+
 console.log("🌍 Locale in index.astro:", locale);
 ---
 

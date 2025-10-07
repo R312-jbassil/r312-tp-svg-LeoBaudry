@@ -54,7 +54,22 @@ const locale = Astro.locals.lang as "en" | "fr" ?? "en";
   </main>
 <script>
   //@ts-nocheck
+    const user = JSON.parse(localStorage.getItem("user"));
 
+    saveButton.addEventListener("click", async () => {
+      const name = prompt("Enter a name for the SVG:");
+      const svgOutput = document.getElementById("svg-output")?.textContent;
+    console.log("Saving SVG: ", JSON.stringify(svgOutput));
+    
+    const params: Collection.Svg = {
+        nom: name,
+        code_svg: svgOutput || "<svg></svg>",
+        chat_history: JSON.stringify(promptList),
+        user: user.id
+    };
+    await saveSVG(params);
+    });
+    
   let promptList = []; // Historique des échanges
 
   // Appel API

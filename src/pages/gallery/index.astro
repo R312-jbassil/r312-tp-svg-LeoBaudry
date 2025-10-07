@@ -6,7 +6,14 @@ import { ui } from "../../i18n/ui.js";
 
 const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
 
-const svgs: SvgRecord[] = await pb.collection(Collections.Svg).getFullList();
+const user = Astro.locals.user; // Récupère l'utilisateur connecté
+const svgs = await pb
+    .collection(Collections.Svg)
+    .getFullList({
+        sort: "-created", // Trie les SVGs du plus récent au plus ancien
+        filter: `user = "${user.id}"`, // Filtre pour n'afficher que les SVGs de l'utilisateur
+    }); 
+
 ---
 
 <Layout title={ui[locale].gallery.title}>

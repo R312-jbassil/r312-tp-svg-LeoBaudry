@@ -9,6 +9,7 @@ if (!id) {
   throw new Error("ID parameter is required");
 }
 const svg: SvgRecord = await pb.collection(Collections.Svg).getOne(id);
+const user = Astro.locals.user;
 
 // Convertir le chat_history JSON string en tableau JS
 const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_history || "[]");
