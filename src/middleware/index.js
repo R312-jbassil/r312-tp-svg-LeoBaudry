@@ -1,4 +1,7 @@
 // src/middleware/index.js
+import pb from '../utils/pb'; // ou le chemin relatif correct vers pb.ts
+
+
 export const onRequest = async (context, next) => {
     
   const cookie = context.cookies.get("pb_auth")?.value;
@@ -23,7 +26,7 @@ export const onRequest = async (context, next) => {
     if (!context.locals.user) {
         if (context.url.pathname !== '/login' && context.url.pathname !== '/')
             return Response.redirect(new URL('/login', context.url), 303);
-          
+
     }
   if (context.url.pathname.startsWith('/api/')) {
     return next();

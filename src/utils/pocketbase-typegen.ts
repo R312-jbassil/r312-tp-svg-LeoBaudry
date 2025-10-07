@@ -1,5 +1,6 @@
 export enum Collections {
   Svg = "svgs",
+  Users = "users",
 }
 
 export type SvgRecord = {

@@ -1,6 +1,6 @@
 // src/pages/api/login.js
 import  pb  from "../../utils/pb";
-import { Collections } from "../../utils/pocketbase-types";
+import { Collections } from "../../utils/pocketbase-typegen.ts";
 
 export const POST = async ({ request, cookies }) => {
     // Récupère l'email et le mot de passe envoyés dans la requête
