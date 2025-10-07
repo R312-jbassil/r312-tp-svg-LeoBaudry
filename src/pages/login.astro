@@ -1,67 +1,95 @@
 ---
-if (Astro.locals.user) {
-    // Si l'utilisateur est déjà connecté, on le redirige vers la page d'accueil
-    return Astro.redirect("/");
-}
+import Layout from "../layouts/Layout.astro";
+import { ui } from "../i18n/ui.js";
+
+const locale = Astro.locals.lang ?? "en";
 const user = Astro.locals.user;
 
----
-<html lang="en" data-theme="light">
-    <head>
-        <title>Login</title>
-        <meta name="viewport" content="width=device-width" />
-        <link href="https://cdn.jsdelivr.net/npm/daisyui@3.8.0/dist/full.css" rel="stylesheet" type="text/css" />
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="min-h-screen flex items-center justify-center bg-base-200">
-        <div class="card w-full max-w-md shadow-xl bg-base-100">
-            <div class="card-body">
-                <h1 class="card-title text-3xl mb-4 justify-center">Connexion</h1>
-                <!-- Formulaire de connexion -->
-                <form id="login-form" class="flex flex-col gap-4">
-                    <input type="email" name="email" placeholder="Email" required class="input input-bordered" />
-                    <input type="password" name="password" placeholder="Mot de passe" required class="input input-bordered" />
-                    <button type="submit" class="btn btn-primary w-full">Se connecter</button>
-                </form>
-                <!-- Zone d'affichage du statut -->
-                <p id="status" class="mt-4 text-center text-error"></p>
-            </div>
-        </div>
-    </body>
-</html>
+// Si l'utilisateur est déjà connecté, on le redirige vers la page d'accueil
+if (user) {
+  return Astro.redirect("/");
+}
 
-<script>
+// Texte de la page login côté serveur
+const uiLogin = ui[locale].login;
+let errorMessage = "";
+let successMessage = "";
+---
+<Layout title={ui[locale].nav.login} lang={locale}>
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="card w-full max-w-md shadow-xl bg-base-100 p-6">
+      <h1 class="card-title text-3xl mb-4 justify-center">{ui[locale].nav.login}</h1>
+
+      <form id="login-form" class="flex flex-col gap-4">
+        <input
+          type="email"
+          name="email"
+          placeholder={uiLogin.emailPlaceholder || "Email"}
+          class="input input-bordered w-full"
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder={uiLogin.passwordPlaceholder || "Mot de passe"}
+          class="input input-bordered w-full"
+          required
+        />
+        <button type="submit" class="btn btn-secondary w-full">{ui[locale].nav.login}</button>
+      </form>
+
+      <p id="status" class="mt-4 text-center text-error">{errorMessage}</p>
+      <p id="success" class="mt-4 text-center text-secondary">{successMessage}</p>
+
+      <p class="text-center mt-2">
+        {ui[locale].nav.loginmessage} ? <a href="/signup" class="link link-primary">{ui[locale].nav.signin}</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
     //@ts-nocheck
-    // On retire toute ancienne information utilisateur du stockage local
-    localStorage.removeItem("user");
     const form = document.getElementById("login-form");
     const status = document.getElementById("status");
+    const success = document.getElementById("success");
 
-    // Gestion de la soumission du formulaire
+    // Supprime l'ancien user
+    localStorage.removeItem("user");
+
     form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
+      e.preventDefault();
+      const formData = new FormData(form);
 
-        // Envoi des informations au serveur via l'API /api/login
+      try {
         const res = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                email: formData.get("email"),
-                password: formData.get("password"),
-            }),
-            credentials: "include", // Permet d'inclure les cookies dans la requête
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.get("email"),
+            password: formData.get("password"),
+          }),
+          credentials: "include",
         });
 
-        // Traitement de la réponse
-        if (res.ok) {
-            const resData = await res.json();
-            localStorage.setItem("user", JSON.stringify(resData.user)); // Sauvegarde des infos utilisateur
-            status.textContent = "✅ Connexion réussie !";
-            // Redirection vers la page d'accueil après un court délai
-            window.location.href = "/";
-        } else {
-            status.textContent = "❌ Email ou mot de passe invalide";
+        const resData = await res.json();
+
+        if (!res.ok) {
+          throw new Error(resData.error || "Email ou mot de passe invalide");
         }
+
+        // Sauvegarde les infos utilisateur
+        localStorage.setItem("user", JSON.stringify(resData.user));
+
+        // Affiche message succès
+        success.textContent = "✅ Connexion réussie !";
+        status.textContent = ""; // on vide le message d'erreur si présent
+          window.location.href = "/";
+        
+      } catch (err) {
+        console.error(err);
+        status.textContent = "❌ " + (err.message || "Erreur lors de la connexion");
+        success.textContent = "";
+      }
     });
-</script>
+  </script>
+</Layout>

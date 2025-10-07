@@ -16,7 +16,7 @@ const svgs = await pb
 
 ---
 
-<Layout title={ui[locale].gallery.title}>
+<Layout title={ui[locale].gallery.title} lang={Astro.locals.lang}>
   <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
     <h1 class="text-3xl font-bold text-primary mb-6">{ui[locale].gallery.title}</h1>
 

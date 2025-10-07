@@ -2,7 +2,8 @@
 import "../styles/global.css";
 import { ui } from "../i18n/ui.js";
 
-const { title } = Astro.props;
+const { title } = Astro.props; // récupère user passé depuis la page
+const user = Astro.locals.user; // récupère toujours le user depuis le middleware
 const pathname = Astro.url.pathname;
 const locale = Astro.props?.lang === 'fr' ? 'fr' : 'en';
 
@@ -36,30 +37,43 @@ if (pathname === "/saved") {
   <body class="h-full">
     <div class="h-full flex flex-col min-h-0">
       <!-- Navbar -->
-      <header class="navbar bg-primary text-primary-content px-4">
-        <a href="/" class="btn btn-info">{ui[locale].nav.home}</a>
-        <a href="/generator" class="btn btn-secondary">{ui[locale].nav.generator}</a>
-        <a href="/gallery" class="btn btn-accent">{ui[locale].nav.gallery}</a>
-        <form method="POST" action="/api/logout" class="m-0 p-0 ml-4">
-          <button type="submit" class="btn btn-warning">Logout</button>
-        </form>
+<header class="navbar bg-base-200 text-primary-content px-4">
+  <a href="/" class="btn btn-info">{ui[locale].nav.home}</a>
+  <a href="/generator" class="btn btn-secondary">{ui[locale].nav.generator}</a>
+  <a href="/gallery" class="btn btn-accent">{ui[locale].nav.gallery}</a>
+
+  <!-- Affichage conditionnel selon connexion et page actuelle -->
+  {user ? (
+    <form method="POST" action="/api/logout" class="m-0 p-0 ml-4">
+      <button type="submit" class="btn btn-warning">{ui[locale].nav.logout}</button>
+    </form>
+  ) : (
+    <>
+      {pathname !== '/signup' && (
+        <a href="/signup" class="btn btn-warning ml-4">{ui[locale].nav.signin}</a>
+      )}
+      {pathname !== '/login' && (
+        <a href="/login" class="btn btn-warning ml-4">{ui[locale].nav.login}</a>
+      )}
+    </>
+  )}
+
+  <!-- Sélecteur de langue -->
+  <form method="POST" action={Astro.url.pathname} class="ml-auto">
+    <select
+      name="language"
+      class="select select-bordered select-sm"
+      onchange="this.form.submit()"
+    >
+      <option disabled selected>{ui[locale].nav.language}</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+    </select>
+  </form>
+</header>
 
 
 
-
-        <!-- Sélecteur de langue -->
-        <form method="POST" action={Astro.url.pathname} class="ml-auto">
-          <select
-            name="language"
-            class="select select-bordered select-sm"
-            onchange="this.form.submit()"
-          >
-            <option disabled selected>{ui[locale].nav.language}</option>
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-          </select>
-        </form>
-      </header>
 
       <!-- Breadcrumbs (si définis) -->
       {crumbs.length > 0 && (

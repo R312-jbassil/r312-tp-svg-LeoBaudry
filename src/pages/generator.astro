@@ -3,9 +3,11 @@ import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 
 const locale = Astro.locals.lang as "en" | "fr" ?? "en";
+const user = Astro.locals.user; // <- récupère l'utilisateur connecté
+
 ---
 
-<Layout title={ui[locale].generator.title}>
+<Layout title={ui[locale].generator.title} user={user} lang={locale}>
   <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
      
     <div class="flex w-full max-w-5xl items-center justify-between">
@@ -69,7 +71,6 @@ const locale = Astro.locals.lang as "en" | "fr" ?? "en";
     };
     await saveSVG(params);
     });
-    
   let promptList = []; // Historique des échanges
 
   // Appel API

@@ -10,11 +10,13 @@ if (!id) {
 }
 const svg: SvgRecord = await pb.collection(Collections.Svg).getOne(id);
 const user = Astro.locals.user;
+const locale = Astro.locals.lang ?? 'en';
+
 
 // Convertir le chat_history JSON string en tableau JS
 const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_history || "[]");
 ---
-<Layout title={`Édition SVG - ${svg.name}`}>
+<Layout title={`Édition SVG - ${svg.name}`} lang={locale}>
   <main class="min-h-screen p-6 flex flex-col gap-6 items-center bg-base-200">
 
     <div class="flex w-full max-w-5xl items-center justify-between">
