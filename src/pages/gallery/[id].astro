@@ -1,5 +1,4 @@
 ---
-// gallery/[id].astro
 import Layout from "../../layouts/Layout.astro";
 import pb from "../../utils/pb";
 import { Collections, type SvgRecord } from "../../utils/pocketbase-typegen";
@@ -12,8 +11,6 @@ const svg: SvgRecord = await pb.collection(Collections.Svg).getOne(id);
 const user = Astro.locals.user;
 const locale = Astro.locals.lang ?? 'en';
 
-
-// Convertir le chat_history JSON string en tableau JS
 const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_history || "[]");
 ---
 <Layout title={`Édition SVG - ${svg.name}`} lang={locale}>
@@ -21,15 +18,27 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
 
     <div class="flex w-full max-w-5xl items-center justify-between">
       <h1 class="text-3xl font-bold text-primary">Édition : {svg.name}</h1>
-      <a href="/gallery" class="btn btn-secondary">← Retour à la galerie</a>
+      <div class="flex gap-2">
+        <button id="download-svg" class="btn btn-secondary gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Télécharger SVG
+        </button>
+        <button id="download-png" class="btn btn-outline btn-primary gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Télécharger PNG
+        </button>
+        <a href="/gallery" class="btn btn-secondary">← Retour à la galerie</a>
+      </div>
     </div>
 
-    <!-- Aperçu SVG -->
     <div id="svg-preview" class="card bg-base-100 shadow-xl p-4 w-full max-w-5xl flex justify-center items-center min-h-[300px]">
       <div set:html={svg.code}></div>
     </div>
 
-    <!-- Historique chat -->
     <div id="chat-history" class="flex flex-col gap-4 w-full max-w-5xl mb-4 overflow-y-auto flex-grow max-h-[400px]">
       {chatHistory.length > 0 ? (
         chatHistory.map(msg => (
@@ -45,10 +54,10 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
       )}
     </div>
 
-    <!-- Formulaire de prompt -->
     <form id="input-prompt-form" class="flex items-center gap-2 w-full max-w-5xl bg-base-300 p-4" autocomplete="off">
       <input type="hidden" name="history" value={JSON.stringify(chatHistory)} />
       <input type="hidden" name="id" value={svg.id} />
+      <input type="hidden" name="svg-name" value={svg.name} />
       <input id="prompt-input" name="editPrompt" type="text" class="input flex-grow" placeholder="Entrez un prompt pour éditer le SVG..." />
       <button class="btn btn-primary text-black" type="submit">Envoyer</button>
     </form>
@@ -61,7 +70,70 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
   const svgPreview = document.getElementById('svg-preview');
   const chatHistoryDiv = document.getElementById('chat-history');
 
-  // Fonction pour générer un SVG via l'API
+  // Fonction pour télécharger le SVG
+  function downloadSVG() {
+    const svgElement = svgPreview.querySelector('div').innerHTML;
+    if (!svgElement || svgElement.trim() === "") {
+      alert("Aucun SVG à télécharger.");
+      return;
+    }
+
+    const svgName = form.querySelector('input[name="svg-name"]').value || "svg-edited";
+    const blob = new Blob([svgElement], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${svgName}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  // Fonction pour télécharger en PNG
+  function downloadPNG() {
+    const svgElement = svgPreview.querySelector('svg');
+    if (!svgElement) {
+      alert("Aucun SVG à télécharger.");
+      return;
+    }
+
+    const svgName = form.querySelector('input[name="svg-name"]').value || "svg-edited";
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      canvas.width = img.width || 500;
+      canvas.height = img.height || 500;
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob((blob) => {
+        const pngUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = `${svgName}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(pngUrl);
+      });
+    };
+
+    img.src = url;
+  }
+
+  // Event listeners
+  document.getElementById("download-svg")?.addEventListener("click", downloadSVG);
+  document.getElementById("download-png")?.addEventListener("click", downloadPNG);
+
   async function generateSVG(messages) {
     const res = await fetch('/api/generateSVG', {
       method: 'POST',
@@ -73,7 +145,6 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
     return data.svg;
   }
 
-  // Fonction pour mettre à jour le SVG dans PocketBase
   async function updateSVG(updatedData) {
     const res = await fetch("/api/updateSVG", {
       method: "POST",
@@ -89,15 +160,12 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
     const promptText = formData.get('editPrompt').trim();
     if (!promptText) return;
 
-    // Récupération de l'historique et ajout du nouveau prompt
     let history = JSON.parse(form.querySelector('input[name="history"]').value);
     const userPrompt = { role: 'user', content: promptText };
     history.push(userPrompt);
 
-    // Mise à jour du champ hidden
     form.querySelector('input[name="history"]').value = JSON.stringify(history);
 
-    // Ajouter prompt à l'affichage
     chatHistoryDiv.innerHTML += `
       <div class="chat chat-start">
         <div class="chat-bubble bg-primary text-black"><pre>${promptText}</pre></div>
@@ -105,22 +173,17 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
       </div>
     `;
 
-    // Scroll automatique
     chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
 
-    // Spinner
     svgPreview.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
 
-    // Appel API pour générer le SVG
     let aiResponse = await generateSVG(history);
     history.push({ role: 'assistant', content: aiResponse });
 
-    // Extraction SVG
     const svgMatch = aiResponse.match(/<svg[\s\S]*?<\/svg>/i);
     aiResponse = svgMatch ? svgMatch[0] : "";
 
-    // Mise à jour de l'affichage
-    svgPreview.innerHTML = aiResponse;
+    svgPreview.innerHTML = `<div>${aiResponse}</div>`;
     chatHistoryDiv.innerHTML += `
       <div class="chat chat-end">
         <div class="chat-bubble bg-secondary text-white"><pre>${aiResponse}</pre></div>
@@ -129,7 +192,6 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
     `;
     chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
 
-    // Update dans PocketBase
     const response = await updateSVG({
       id: formData.get("id"),
       code: aiResponse,
@@ -144,3 +206,4 @@ const chatHistory: { role: string; content: string }[] = JSON.parse(svg.chat_his
     form.reset();
   });
 </script>
+</Layout>

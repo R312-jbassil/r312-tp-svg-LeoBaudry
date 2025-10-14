@@ -1,41 +1,47 @@
 // src/middleware/index.js
-import pb from '../utils/pb'; // ou le chemin relatif correct vers pb.ts
-
+import pb from '../utils/pb';
 
 export const onRequest = async (context, next) => {
     
+  console.log('🔍 Middleware - URL:', context.url.pathname);
+  
   const cookie = context.cookies.get("pb_auth")?.value;
-    if (cookie) {
-        pb.authStore.loadFromCookie(cookie); // Charge les infos d'auth depuis le cookie
-        if (pb.authStore.isValid) {
-            // Si le token est valide, ajoute les données utilisateur dans Astro.locals
-            context.locals.user = pb.authStore.record;
-        }
+  if (cookie) {
+    pb.authStore.loadFromCookie(cookie);
+    if (pb.authStore.isValid) {
+      context.locals.user = pb.authStore.record;
     }
+  }
 
-    // Pour les routes API, on exige l'authentification sauf pour /api/login
-    if (context.url.pathname.startsWith('/api/')) {
-        if (!context.locals.user && context.url.pathname !== '/api/login') {
-            // Si l'utilisateur n'est pas connecté, on retourne une erreur 401 (non autorisé)
-            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-        }
-        return next(); // Continue le traitement normal
-    }
-
-    // Pour les autres pages, si l'utilisateur n'est pas connecté, on le redirige vers /login
-    if (!context.locals.user) {
-    if (
-        context.url.pathname !== '/login' &&
-        context.url.pathname !== '/' &&
-        context.url.pathname !== '/signup' // <-- ajouter cette ligne
-    ) {
-        return Response.redirect(new URL('/login', context.url), 303);
-    }
-}
+  // Pour les routes API, on exige l'authentification SAUF pour /api/login ET /api/signup
   if (context.url.pathname.startsWith('/api/')) {
+    console.log('🔍 Route API détectée:', context.url.pathname);
+    console.log('🔍 User connecté ?', !!context.locals.user);
+    console.log('🔍 Est login ?', context.url.pathname === '/api/login');
+    console.log('🔍 Est signup ?', context.url.pathname === '/api/signup');
+    
+    if (!context.locals.user && 
+        context.url.pathname !== '/api/login' && 
+        context.url.pathname !== '/api/signup') {
+      console.log('❌ BLOQUÉ par middleware');
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+    console.log('✅ Route API autorisée');
     return next();
   }
 
+  // Pour les autres pages, si l'utilisateur n'est pas connecté, on le redirige vers /login
+  if (!context.locals.user) {
+    if (
+      context.url.pathname !== '/login' &&
+      context.url.pathname !== '/' &&
+      context.url.pathname !== '/signup'
+    ) {
+      return Response.redirect(new URL('/login', context.url), 303);
+    }
+  }
+
+  // Gestion du changement de langue
   if (context.request.method === 'POST') {
     const form = await context.request.formData().catch(() => null);
     const lang = form?.get('language');

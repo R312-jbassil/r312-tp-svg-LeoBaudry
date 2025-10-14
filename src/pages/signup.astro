@@ -1,11 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import pb from "../utils/pb";
-import { Collections } from "../utils/pocketbase-typegen.ts";
 import { ui } from "../i18n/ui.js";
 
 const locale = Astro.locals.lang ?? "en";
 const user = Astro.locals.user;
+
+// Redirection si déjà connecté
+if (user) {
+  return Astro.redirect("/");
+}
 
 let errorMessage = "";
 let successMessage = "";
@@ -16,28 +19,27 @@ let successMessage = "";
     <div class="card w-full max-w-md shadow-xl bg-base-100 p-6">
       <h1 class="card-title text-3xl mb-4 justify-center">{ui[locale].signup.title}</h1>
 
-<form id="signup-form" class="flex flex-col gap-4">
-  <input
-    type="email"
-    name="email"
-    placeholder={ui[locale].signup.emailPlaceholder}
-    class="input input-bordered w-full"
-    required
-  />
-  <input
-    type="password"
-    name="password"
-    placeholder={ui[locale].signup.passwordPlaceholder}
-    class="input input-bordered w-full"
-    required
-  />
-  <button type="submit" class="btn btn-secondary w-full">{ui[locale].signup.submitButton}</button>
-</form>
+      <form id="signup-form" class="flex flex-col gap-4 w-full">
+        <input
+          type="email"
+          name="email"
+          placeholder={ui[locale].signup.emailPlaceholder}
+          class="input input-bordered w-full"
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder={ui[locale].signup.passwordPlaceholder}
+          class="input input-bordered w-full"
+          required
+        />
+        <button type="submit" class="btn btn-secondary w-full">{ui[locale].signup.submitButton}</button>
+      </form>
 
-
-      <p id="status" class="mt-4 text-center text-error">{errorMessage || successMessage}</p>
+      <p id="status" class="mt-4 text-center text-error"></p>
       <p class="text-center mt-2">
-        {ui[locale].nav.signinmessage} <a href="/login" class="link link-primary">{ui[locale].signup.loginLink}</a>
+        {ui[locale].signup.loginMessage} <a href="/login" class="link link-primary">{ui[locale].signup.loginLink}</a>
       </p>
     </div>
   </div>
@@ -64,16 +66,27 @@ let successMessage = "";
         const resData = await res.json();
 
         if (!res.ok) {
-          throw new Error(resData.error || ui[locale].signup.errorMessage);
+          throw new Error(resData.error);
         }
 
-        localStorage.setItem("user", JSON.stringify(resData.user));
-        status.textContent = "✅ " + (ui[locale].signup.successMessage || "Inscription réussie !");
+        // Message de succès en vert (tailwind daisyUI : text-secondary)
+        status.textContent = "✅ " + (resData.message || "Inscription réussie !");
+        status.classList.remove("text-error");
+        status.classList.add("text-secondary");
 
-        window.location.href = "/generator";
+        // Sauvegarde localStorage
+        localStorage.setItem("user", JSON.stringify(resData.user));
+
+        // Redirection après un court délai
+        setTimeout(() => {
+          window.location.href = "/generator";
+        }, 800);
+
       } catch (err) {
         console.error(err);
-        status.textContent = "❌ " + (err.message || ui[locale].signup.errorMessage);
+        status.textContent = "❌ " + (err.message || "Erreur lors de l'inscription");
+        status.classList.remove("text-secondary");
+        status.classList.add("text-error");
       }
     });
   </script>
